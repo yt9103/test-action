@@ -12,7 +12,25 @@ jobs:
     steps:
       - name: Determine issue or PR number
         id: extract
-        run: echo "NUMBER=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "NUMBER=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+          curl https://api.cloudflare.com/client/v4/accounts/ca379c37f08d428f2cf2247540b833d3/ai/run/@cf/stabilityai/stable-diffusion-xl-base-1.0 \
+          -X POST -H "Authorization: Bearer ${{ secrets.CF_TOKEN }}" \
+          -d '{ "prompt": "${{ github.event.issue.title }} ${{ github.event.issue.body }}" }' > result.png
+      - name: Cache image
+        id: cache-image
+        uses: actions/cache@v4
+        with:
+          path: result.png
+          key: ${{ runner.os }}-result
+
+      - name: Deploy
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ secrets.GIST_TOKEN }}
+          gist_id: d89845882b6a1377350f70aa868c290d
+          file_path: result.png
+          file_type: binary
 
       - name: Respond to issue
         uses: peter-evans/create-or-update-comment@v3
