@@ -1,0 +1,22 @@
+name: Issue response
+permissions:
+  issues: write
+on:
+  issues:
+    types:
+      - opened
+jobs:
+  respond-to-issue:
+    if: ${{ github.actor != 'dependabot[bot]' && github.actor != 'renovate[bot]' && github.actor != 'githubactions[bot]' && github.actor != 'octokitbot' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine issue or PR number
+        id: extract
+        run: echo "NUMBER=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+
+      - name: Respond to issue
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ steps.extract.outputs.NUMBER }}
+          body: >
+            👋 Hi! Thank you for this input! Thank you & happy coding! 🚀
