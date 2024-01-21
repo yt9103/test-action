@@ -10,7 +10,7 @@ jobs:
     if: ${{ github.actor != 'dependabot[bot]' && github.actor != 'renovate[bot]' && github.actor != 'githubactions[bot]' && github.actor != 'octokitbot' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Determine issue or PR number
+      - name: Determine issue
         id: extract
         run: |
           echo "NUMBER=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
@@ -31,6 +31,9 @@ jobs:
           message: add image
           files: |
             results/result_${{ steps.extract.outputs.NUMBER }}.png
+
+      - name: checkout
+        uses: actions/checkout@v3
 
       - name: Respond to issue
         uses: peter-evans/create-or-update-comment@v3
