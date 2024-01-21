@@ -14,23 +14,23 @@ jobs:
         id: extract
         run: |
           echo "NUMBER=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+          mkdir results
           curl https://api.cloudflare.com/client/v4/accounts/ca379c37f08d428f2cf2247540b833d3/ai/run/@cf/stabilityai/stable-diffusion-xl-base-1.0 \
           -X POST -H "Authorization: Bearer ${{ secrets.CF_TOKEN }}" \
-          -d '{ "prompt": "${{ github.event.issue.title }} ${{ github.event.issue.body }}" }' > result.png
+          -d '{ "prompt": "${{ github.event.issue.title }} ${{ github.event.issue.body }}" }' > results/result_${{ github.event.issue.number }}.png
       - name: Cache image
         id: cache-image
         uses: actions/cache@v4
         with:
-          path: result.png
+          path: results/result_${{ steps.extract.outputs.NUMBER }}.png
           key: ${{ runner.os }}-result
 
-      - name: Deploy
-        uses: exuanbo/actions-deploy-gist@v1
+      - name: Commit
+        uses: wranders/commit-action@v0
         with:
-          token: ${{ secrets.GIST_TOKEN }}
-          gist_id: d89845882b6a1377350f70aa868c290d
-          file_path: result.png
-          file_type: binary
+          message: add image
+          files: |
+            results/result_${{ steps.extract.outputs.NUMBER }}.png
 
       - name: Respond to issue
         uses: peter-evans/create-or-update-comment@v3
@@ -38,3 +38,4 @@ jobs:
           issue-number: ${{ steps.extract.outputs.NUMBER }}
           body: >
             👋 Hi! Thank you for this input! Thank you & happy coding! 🚀
+            ![result](results/result_${{ steps.extract.outputs.NUMBER }}.png)
