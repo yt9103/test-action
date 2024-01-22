@@ -25,7 +25,7 @@ jobs:
                               -H "Content-Type: multipart/form-data" \
                               -H "Authorization: ${{ secrets.SM_MS_TOKEN }}" \
                               https://smms.app/api/v2/upload \
-                              | jq '.data.url'
+                              | jq '.data.url')
 
           echo $image_url
           echo "IMAGE_URL=$image_url" >> "$GITHUB_OUTPUT"
