@@ -27,7 +27,7 @@ jobs:
                               https://smms.app/api/v2/upload \
                               | jq '.data.url')
 
-          echo $image_url
+          echo {$image_url//"/}
           echo "IMAGE_URL=$image_url" >> "$GITHUB_OUTPUT"
 
 
