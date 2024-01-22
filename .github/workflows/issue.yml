@@ -14,31 +14,26 @@ jobs:
         id: extract
         run: |
           echo "NUMBER=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
-          mkdir results
+
           curl https://api.cloudflare.com/client/v4/accounts/ca379c37f08d428f2cf2247540b833d3/ai/run/@cf/stabilityai/stable-diffusion-xl-base-1.0 \
-          -X POST -H "Authorization: Bearer ${{ secrets.CF_TOKEN }}" \
-          -d '{ "prompt": "${{ github.event.issue.title }} ${{ github.event.issue.body }}" }' > results/result_${{ github.event.issue.number }}.png
-      - name: Cache image
-        id: cache-image
-        uses: actions/cache@v4
-        with:
-          path: results/result_${{ steps.extract.outputs.NUMBER }}.png
-          key: ${{ runner.os }}-result
+               -X POST \
+               -H "Authorization: Bearer ${{ secrets.CF_TOKEN }}" \
+               -d '{ "prompt": "${{ github.event.issue.title }} ${{ github.event.issue.body }}" }' > result.png
 
-      - name: Commit
-        uses: wranders/commit-action@v0
-        with:
-          message: add image
-          files: |
-            results/result_${{ steps.extract.outputs.NUMBER }}.png
+          image_url = curl -s -X POST \
+                              -F "smfile=@result.png" \
+                              -H "Content-Type: multipart/form-data" \
+                              -H "Authorization: ${{ secrets.SM_MS_TOKEN }}" \
+                              https://smms.app/api/v2/upload \
+                              | grep -o -E '"url":"(.*?)"|"images":"(.*?)"' \
+                              | sed -E 's/("url":"|"images":"|"|\\)//g'
 
-      - name: checkout
-        uses: actions/checkout@v3
+           echo "IMAGE_URL=$image_url" >> "$GITHUB_OUTPUT"
+
 
       - name: Respond to issue
         uses: peter-evans/create-or-update-comment@v3
         with:
           issue-number: ${{ steps.extract.outputs.NUMBER }}
           body: >
-            👋 Hi! Thank you for this input! Thank you & happy coding! 🚀
-            ![result](results/result_${{ steps.extract.outputs.NUMBER }}.png)
+            ![result](${{ steps.extract.outputs.IMAGE_URL }})
